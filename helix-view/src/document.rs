@@ -13,6 +13,7 @@ use helix_core::snippets::{ActiveSnippet, SnippetRenderCtx};
 use helix_core::syntax::config::LanguageServerFeature;
 use helix_core::text_annotations::{InlineAnnotation, Overlay};
 use helix_event::TaskController;
+use helix_lsp::lsp::DocumentSymbol;
 use helix_lsp::util::lsp_pos_to_pos;
 use helix_stdx::faccess::{copy_metadata, readonly};
 use helix_vcs::{DiffHandle, DiffProviderRegistry};
@@ -153,6 +154,8 @@ pub struct Document {
     pub(crate) jump_labels: HashMap<ViewId, Vec<Overlay>>,
     /// LSP document highlights for each view, stored as char ranges.
     pub(crate) document_highlights: HashMap<ViewId, DocumentHighlights>,
+    /// LSP document symbols
+    document_symbols: Vec<DocumentSymbol>,
     /// Set to `true` when the document is updated, reset to `false` on the next inlay hints
     /// update from the LSP
     pub inlay_hints_oudated: bool,
@@ -764,6 +767,7 @@ impl Document {
             previous_diagnostic_ids: HashMap::new(),
             pull_diagnostic_controller: TaskController::new(),
             document_link_controller: TaskController::new(),
+            document_symbols: Vec::new(),
         }
     }
 
@@ -2414,6 +2418,10 @@ impl Document {
 
     pub fn has_language_server_with_feature(&self, feature: LanguageServerFeature) -> bool {
         self.language_servers_with_feature(feature).next().is_some()
+    }
+
+    fn set_document_symbols(&mut self, document_symbols: Vec<DocumentSymbol>) {
+        self.document_symbols = document_symbols;
     }
 }
 

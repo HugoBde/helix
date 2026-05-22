@@ -1270,6 +1270,20 @@ pub fn select_references_to_symbol_under_cursor(cx: &mut Context) {
     );
 }
 
+pub fn compute_document_symbols(editor: &Editor, jobs: &mut crate::job::Jobs) {
+    let language_server = doc
+        .language_servers_with_feature(LanguageServerFeature::DocumentSymbols)
+        .next()?;
+
+    let callback = super::make_job_callback(
+        language_server.document_symbols(doc.identifier())?,
+        move |_editor, _compositor, _response: Option<lsp::DocumentSymbolResponse>| {},
+    );
+    jobs.callback(callback);
+
+    Some(callback)
+}
+
 pub fn compute_inlay_hints_for_all_views(editor: &mut Editor, jobs: &mut crate::job::Jobs) {
     if !editor.config().lsp.display_inlay_hints {
         return;
